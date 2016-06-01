@@ -1,0 +1,13 @@
+import os, sys
+filedir=''
+for root, dirs, files in os.walk(filedir):
+      for file in files:
+            path = os.path.join(root, file)
+            name = os.path.basename(path)
+            if str(name)=='build.gradle':
+                  file = open(path,'r')
+                  lines = file.readlines()
+                  for line in lines:
+                        if 'SNAPSHOT' in line:
+                  print ('Find SNAPSHOT IN', path, 'Please check')
+                  print (line)

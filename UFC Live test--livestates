@@ -1,0 +1,217 @@
+import json
+import time
+
+def changecr(i , j):
+      with open('/Users/abc/Desktop/Pythonscript/UFCLiveTest/11703_livestats.json', encoding='utf-8') as f:
+            data = json.load(f)
+      count = 0
+      m=[1,2,3,4,5]
+      for games in data:
+            count +=1
+            if count==m[i]:                 
+                  games['s']=1
+                  games['cr']=j
+      with open('/Users/abc/Desktop/Pythonscript/UFCLiveTest/11703_livestats.json', 'w') as f:
+            f.write(json.dumps(data))
+
+def removercr(i):
+      with open('/Users/abc/Desktop/Pythonscript/UFCLiveTest/11703_livestats.json', encoding='utf-8') as f:
+            data = json.load(f)
+      count = 0
+      m=[1,2,3,4,5]
+      for games in data:
+            count +=1
+            if count==m[i]:
+                  del games['cr']
+      with open('/Users/abc/Desktop/Pythonscript/UFCLiveTest/11703_livestats.json', 'w') as f:
+            f.write(json.dumps(data))
+
+def chagetodvr(i):
+      with open('/Users/abc/Desktop/Pythonscript/UFCLiveTest/11703_livestats.json', encoding='utf-8') as f:
+            data = json.load(f)
+      count = 0
+      m=[1,2,3,4,5]
+      for games in data:
+            count +=1
+            if count==m[i]:                 
+                  games['s']=2
+      with open('/Users/abc/Desktop/Pythonscript/UFCLiveTest/11703_livestats.json', 'w') as f:
+            f.write(json.dumps(data))
+      
+# Change eventdetail fedd liveState to 1     
+with open('/Users/abc/Desktop/Pythonscript/UFCLiveTest/ufc-198', encoding='utf-8') as detail_file:    
+    data = json.load(detail_file)
+    data['liveState'] = 1
+with open('/Users/abc/Desktop/Pythonscript/UFCLiveTest/ufc-198', 'w') as f:
+    f.write(json.dumps(data))
+print ('Event is LIVE NOW' )
+#time.sleep(10)
+
+# Step 1 Change all 's' to 0
+with open('/Users/abc/Desktop/Pythonscript/UFCLiveTest/11703_livestats.json', encoding='utf-8') as f:
+      data = json.load(f)
+      
+for games in data:
+      games['s']=0
+      
+with open('/Users/abc/Desktop/Pythonscript/UFCLiveTest/11703_livestats.json', 'w') as f:
+      f.write(json.dumps(data))
+
+
+# Step 2 Start tesing
+'''GAME 1 '''
+print ('Start testing Game 1')
+# Change the 's' of the first game to 1 and add cr =0
+changecr(4 , 0)
+time.sleep(60)
+
+# Change the 's' of the first game to 1 and add cr =1
+changecr(4 , 1)
+time.sleep(60)
+
+# Change the 's' of the first game to 1 and add cr =2
+changecr(4 , 2)
+time.sleep(60)
+
+# Change the 's' of the first game to 1 and add cr =3
+changecr(4 , 3)
+time.sleep(60)
+
+# Change the 's' of the first game to 1 and add cr =4
+changecr(4 , 4)
+time.sleep(60)
+
+# Remove 'cr' of the first game
+removercr(4)
+
+# Chage 's'' of thefirst game to 2
+chagetodvr(4)
+
+'''GAME 2 '''
+print ('Start testing Game 2')
+# Change the 's' of the second game to 1 and add cr =0
+changecr(3 , 0)
+time.sleep(60)
+
+# Change the 's' of the second  game to 1 and add cr =1
+changecr(3 , 1)
+time.sleep(60)
+
+# Change the 's' of the second  game to 1 and add cr =2
+changecr(3 , 2)
+time.sleep(60)
+
+# Change the 's' of the second  game to 1 and add cr =3
+changecr(3 , 3)
+
+# Change the 's' of the second  game to 1 and add cr =4
+changecr(3 , 4)
+time.sleep(60)
+
+#Remove 'cr' of the second  game
+removercr(3)
+
+#Chage 's'' of the second  game to 2
+chagetodvr(3)
+
+'''GAME 3 '''
+print ('Start testing Game 3')
+# Change the 's' of the third game to 1 and add cr =0
+changecr(2 , 0)
+time.sleep(60)
+
+# Change the 's' of the third game to 1 and add cr =1
+changecr(2 , 1)
+time.sleep(60)
+
+# Change the 's' of the third game to 1 and add cr =2
+changecr(2 , 2)
+time.sleep(60)
+
+# Change the 's' of the third game to 1 and add cr =3
+changecr(2 , 3)
+time.sleep(60)
+
+# Change the 's' of the third game to 1 and add cr =4
+changecr(2 , 4)
+time.sleep(60)
+
+#Remove 'cr' of the third game
+removercr(2)
+
+#Chage 's'' of the third game to 2
+chagetodvr(2)
+
+'''GAME 4 '''
+print ('Start testing Game 4')
+# Change the 's' of the fouth game to 1 and add cr =0
+changecr(1 , 0)
+time.sleep(60)
+
+# Change the 's' of the fouth  game to 1 and add cr =1
+changecr(1 , 1)
+time.sleep(60)
+
+# Change the 's' of the fouth  game to 1 and add cr =2
+changecr(1 , 2)
+
+# Change the 's' of the fouth  game to 1 and add cr =3
+changecr(1 , 3)
+time.sleep(60)
+
+# Change the 's' of the fouth  game to 1 and add cr =4
+changecr(1 , 4)
+time.sleep(60)
+
+#Remove 'cr' of the fouth  game
+removercr(1)
+
+#Chage 's'' of the fouth game to 2
+chagetodvr(1)
+
+'''GAME 5 '''
+print ('Start testing Game 5')
+# Change the 's' of the fifth game to 1 and add cr =0
+changecr(0 , 0)
+time.sleep(60)
+
+# Change the 's' of the fifth game to 1 and add cr =1
+changecr(0 , 1)
+time.sleep(60)
+
+# Change the 's' of the fifth game to 1 and add cr =2
+changecr(0 , 2)
+time.sleep(60)
+
+# Change the 's' of the fifth game to 1 and add cr =3
+changecr(0 , 3)
+time.sleep(60)
+
+# Change the 's' of the fifth game to 1 and add cr =4
+changecr(0 , 4)
+time.sleep(60)
+
+#Remove 'cr' of the fifth game
+removercr(0)
+
+#Chage 's'' of the fifth game to 2
+chagetodvr(0)
+
+# Change eventdetail fedd liveState to 0     
+with open('/Users/abc/Desktop/Pythonscript/UFCLiveTest/ufc-198', encoding='utf-8') as detail_file:    
+    data = json.load(detail_file)
+    data['liveState'] = 3
+time.sleep(1)
+with open('/Users/abc/Desktop/Pythonscript/UFCLiveTest/ufc-198', 'w') as f:
+    f.write(json.dumps(data))
+print ('Change liveState of Event detail to 3' )
+
+print ('Ending')
+time.sleep(5)
+
+with open('/Users/abc/Desktop/Pythonscript/UFCLiveTest/ufc-198', encoding='utf-8') as detail_file:    
+    data = json.load(detail_file)
+    data['liveState'] = 0
+with open('/Users/abc/Desktop/Pythonscript/UFCLiveTest/ufc-198', 'w') as f:
+    f.write(json.dumps(data))
+print ('Change liveState of Event detail to 0')

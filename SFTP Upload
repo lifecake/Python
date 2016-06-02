@@ -1,0 +1,27 @@
+import os
+import pysftp
+
+local = input ('Local file path:')
+remote = input ('FTP file path:')
+
+#Connect to SFTP Server
+sftp = pysftp.Connection('ip', username='', password='')
+sftp.makedirs(remote)
+sftp.put_d(local, remote, preserve_mtime = True)
+data = sftp.listdir_attr(remote)
+# Closes the connection
+sftp.close()
+
+#Compare local file size with file uploaded to FTP
+
+for root, dirs, files in os.walk(local):
+      for file in files:
+            path = os.path.join(root, file)
+            size = os.stat(path).st_size
+            name = os.path.basename(path)
+            for f in data:
+                  if (name ==f.filename):
+                        if (size==f.st_size):
+                              print (name, 'is ok')
+                        else:
+                              print (name, 'upload fail, please check!')

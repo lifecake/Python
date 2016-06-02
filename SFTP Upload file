@@ -5,7 +5,7 @@ local = input ('Local file path:')
 remote = input ('FTP file path:')
 
 #Connect to SFTP Server
-sftp = pysftp.Connection('54.150.211.223', username='nlmobile', password='samdf!2@')
+sftp = pysftp.Connection()
 sftp.makedirs(remote)
 sftp.put_d(local, remote, preserve_mtime = True)
 data = sftp.listdir_attr(remote)

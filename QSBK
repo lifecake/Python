@@ -1,0 +1,46 @@
+import re
+from urllib.request import *
+import urllib
+import smtplib  
+import email.mime.multipart  
+import email.mime.text
+
+class QSBK:
+      def __init__(self):
+            self.mailtext = ''
+            
+      def getContent(self):
+            user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.71 Safari/537.36r)'
+            headers = {'User-Agent': user_agent}
+            stories = []
+            
+            try:
+                  url = 'http://www.qiushibaike.com/text/' 
+                  request = Request(url, headers = headers)
+                  response = urlopen(request)
+                  content = response.read().decode("UTF-8").replace("<br/>", "\n")
+                  pattern = re.compile('(?<=<div\sclass="content">).+?(?=</div>)', re.S)
+                  stories = re.findall(pattern, content)
+                  for story in stories:
+                        self.mailtext = self.mailtext + story+'\n'
+            except urllib.error.URLError as e:
+                  if hasattr(e, "reason"):
+                        print ("获取失败，错误原因", e.reason)
+      def sendOut(self):
+            msg=email.mime.multipart.MIMEMultipart()  
+            msg['from']='neulionqa@163.com'  
+            msg['to']='peter.yang@neulion.com.cn'  
+            msg['subject']='开心一笑'  
+            content=self.mailtext
+            txt=email.mime.text.MIMEText(content)  
+            msg.attach(txt)  
+            smtp=smtplib  
+            smtp=smtplib.SMTP()  
+            smtp.connect('smtp.163.com')  
+            smtp.login('neulionqa','password')  
+            smtp.sendmail('neulionqa@163.com','peter.yang@neulion.com.cn',str(msg))  
+            smtp.quit()  
+                
+spider = QSBK()
+spider.getContent()
+spider.sendOut()

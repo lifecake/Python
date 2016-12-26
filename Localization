@@ -4,11 +4,15 @@ def localization (input,output):
       with open(input,  'r+', encoding='utf-8') as f:
             lines = f.readlines()
             for line in lines:
-                  if '=' in line:
+                  if '#' in line:
+                        newfile = open(output,'a')
+                        newfile.writelines(str (line))
+                        newfile.close()
+                  elif '=' in line:
                         newline=re.sub('(?<==).+?(?=$)', str(i), line)
                         i+=1
                         newfile = open(output,'a')
                         newfile.writelines(str (newline))
                         newfile.close()
 
-localization('/Users/abc/Desktop/Pythonscript/localization/localization_en.txt','/Users/abc/Desktop/Pythonscript/localization/1.txt')
+localization('../A.txt','../B.txt')

@@ -1,0 +1,76 @@
+# -*- coding : utf-8 -*-
+import urllib.request
+from urllib.request import *
+from bs4 import BeautifulSoup
+import re
+import os
+import time
+
+user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.71 Safari/537.36r)'
+rooturl = 'http://www.lewenwu.com/books/47/47419'
+headers = {'User-Agent': user_agent, 'Referer': rooturl}
+chapternames = []
+chaptersurls = []
+class findchapterurls:
+      def geturl(self,rooturl):
+            request = Request(rooturl, headers = headers)
+            response = urllib.request.urlopen(rooturl)
+            html = str(response.read(), 'gbk')
+            soup = BeautifulSoup(html,'html.parser')
+            for item in soup.find_all('a'):
+                  if 'target' in item.attrs and re.search( '^\d*.html', item['href']):
+                        chapternames.append(item.string)
+                        chaptersurls.append(item.attrs['href'])
+            del chapternames[0]
+            del chaptersurls[0]
+            global xstitle 
+            xstitle = soup.title.string
+            return True
+
+class tools:
+      #Remove html tags
+      def __init__(self):
+            self.removebr = re.compile('<br/><br/>')
+            #Remove br
+            self.removecomment = re.compile('<\S?--go-->')
+            #Remove go
+            self.removediv = re.compile('<div.*?</div>')
+            #Remove div
+            self.removea = re.compile('<a.*?</a>')
+            #Remove a
+            self.removeover = re.compile ('<!--over.*?</div>')
+            #Remove over
+      def replace(self, x):
+            x = self.removebr.sub( ' ', x)
+            x = self.removecomment.sub(' ', x)
+            x = self.removediv.sub(' ', x)
+            x = self.removea.sub(' ', x)
+            x = self.removeover.sub(' ', x)
+            return x
+
+class xscontent:
+      #Write content to file
+      def getcontent():
+            i=0
+            for link in chaptersurls:
+                  url = 'http://www.lewenwu.com/books/47/47419/'+link
+                  request = Request(url, headers = headers)
+                  response = urllib.request.urlopen(request)
+                  html = str(response.read(), 'gbk')
+                  soup = BeautifulSoup(html,'html.parser')
+                  for item in soup.find_all('div'):
+                        if 'id' in item.attrs and re.search( '^content', item['id']):
+                              xscontenthtml = str (item)                        
+                  w = tools().replace(xscontenthtml)
+                  saveFile = open ('text.txt', 'a',encoding ='utf-8')
+                  saveFile.write(chapternames[i])
+                  saveFile.write('\n')
+                  saveFile.write(w.replace(' ',''))
+                  saveFile.write('\n')
+                  saveFile.close()
+#                  time.sleep(1)
+                  i=i+1
+if __name__=='__main__':
+      findchapterurls().geturl('http://www.lewenwu.com/books/47/47419')
+      xscontent.getcontent()
+      os.rename('text.txt',xstitle+'.txt')

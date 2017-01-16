@@ -1,20 +1,47 @@
 import re
-class NLTestQoS:
-    def Test_Video(self):
-        videohb=['messageType','convention','siteID','productID','clientID','appVersion','userID','sessionID',
-                         'deviceType','appType','os','networkType','viewID','msgID','carrierName',
-                           'ppType','streamDescription','streamURL','streamLength','ppId','mode',
-                        'player','windowMode','playTime','bitrate','playerVersion','bufferTime','playerVersion',
-                           'switchMethod','cdnName','bytesLoaded','bytesLoadedDelta','dropFrameCount','startupTime','updateInterval']
-
-        with open('video.xml', 'w') as f:
-            f.write(''.join([line for line in open('testvideo.xml').readlines() if "messageType=VIDEO_HB" in line]))
+import requests
+from bs4 import BeautifulSoup
+class Tools:
+    
+    def Test_Tools(testVideo):
+        global commonParameters
+        global lines
+        global bytesloaded
+        global bytesloadedDelta
+        global logfile
+        
+        commonParameters = ['viewID','msgID','ppType','streamDescription','streamURL','streamLength','player','windowMode','playTime','bandwidth','bitrate','switchMethod',
+                           'cdnName','bytesLoaded','bytesLoadedDelta','dropFrameCount','startupTime','vs','updateInterval','messageType','convention','siteID','productID',
+                           'clientID','appVersion','userID','sessionID','deviceType','appType','os','networkType','carrierName','userType','jsVersion','mode','playerVersion',
+                           'bufferTime','playerVersion']
+        if testVideo == 'live video':
+            testfile = 'testlivevideo.xml'
+            logfile = 'livevideo.xml'
+        elif (testVideo=='video'):
+            testfile = 'testvideo.xml'
+            logfile = 'video.xml'
+        elif (testVideo=='channel'):
+            testfile = 'testchannel.xml'
+            logfile = 'channel.xml'
+        elif (testVideo=='game'):
+            testfile = 'testgame.xml'
+            logfile = 'game.xml'
+        elif (testVideo=='live game'):
+            testfile = 'testlivegame.xml'
+            logfile = 'livegame.xml'
+        else:
+            print ('Wrong test type')
+            
+        with open(logfile, 'w') as f:
+            f.write(''.join([line for line in open(testfile).readlines() if "messageType=VIDEO_HB" in line]))
         f.close()
-        file = open("video.xml","r")
+        file = open(logfile,"r")
         lines = file.readlines()
         m = 0
         bytesloaded=[]
         bytesloadedDelta=[]
+    def Test_commonParameters():
+        global QoSlog
         for line in lines:
             if "<![CDATA" in line:
                 qos=line[line.find("<![CDATA[")+9:line.find("]")]
@@ -23,215 +50,228 @@ class NLTestQoS:
                 for i in message:
                     log=i.split("=")
                     newlog.append(log)
+                    if newlog[-1]==['']:
+                        del newlog[-1]
                 QoSlog=dict(newlog)
-                for i in videohb:
-                    if i not in QoSlog.keys():
+                for i in testParameters:
+                    if i not in QoSlog.keys() and i == 'bufferTime':
+                        print ('Warning',i, 'is missing!!!')
+                    elif i not in QoSlog.keys():
                         print ('!!!',i, 'is missing!!!')
-#                    else:
-#                        print (i,':',QoSlog[i])
                 for j in QoSlog.keys():
-                    if j not in videohb:
+                    if j not in testParameters:
                         print ('!!!', j, 'should not be passed in VIDEO_HB(Video)')
                 for n in QoSlog.keys():
-                    if (n=='bytesLoaded'):
+                    if n=='bytesLoaded':
                         bytesloaded.append(QoSlog[n])
-                    if (n=='bytesLoadedDelta'):
+                    elif n=='bytesLoadedDelta':
                         bytesloadedDelta.append(QoSlog[n])
-                    if (n=='networkType' and (QoSlog[n] not in ['wifi','carrier','landline'])):
+                    elif n=='networkType' and (QoSlog[n] not in ['wifi','carrier','landline']):
                         print ('!!!networkType:',QoSlog[n],'is WRONG')
-                    elif (n=='updateInterval' and (QoSlog[n] not in ['60','30'])):
+                    elif n=='updateInterval' and (QoSlog[n] not in ['60','30']):
                         print ('!!!updateInterval:',QoSlog[n],'is WRONG')
-                    elif (n=='convention' and (QoSlog[n] not in ['1.0'])):
+                    elif n=='convention' and (QoSlog[n] not in ['1.0', '1.1']):
                         print ('!!!convention:',QoSlog[n],'is WRONG')
-                    elif ((n=='userID' and ('-'not in QoSlog[n] ))):
+                    elif n=='userID' and ('-'not in QoSlog[n] ):
                         print ('!!!userID:',QoSlog[n],'is WRONG')
-                    elif (n== 'ppType' and (QoSlog[n] not in ['video'])):
-                        print ('!!!ppType:',QoSlog[n],'is WRONG')
-                    elif (n== 'ppGt' and (QoSlog[n] not in ['1','2','4','8','16','32','64','128','256','512','1024'])):
-                       print ('!!!ppGt:',QoSlog[n],'is WRONG')
-                    elif (n=='ppGs'and(QoSlog[n] not in ['3'] )):
-                        print ('!!!ppGs:',QoSlog[n],'is WRONG')
-                    elif (n=='msgID' and not (re.search('^\\d+$',QoSlog[n]))):
+                    elif n=='msgID' and not (re.search('^\\d+$',QoSlog[n])):
                         print ('!!!msgID:',QoSlog[n],'is WRONG which should be natural number!')
-                    elif (n=='switchMethod:' and (QoSlog[n] not in ['1','0'])):
+                    elif n=='switchMethod:' and (QoSlog[n] not in ['1','0']):
                         print ('!!!switchMethod:',QoSlog[n],'is WRONG which should be 1(maunal) or 0(auto adaptive)')
-                    elif (n=='bitrate' and not ('^[1-9][0-9]*0{1}$',QoSlog[n])):
+                    elif n=='bitrate' and not ('^[1-9][0-9]*0{1}$',QoSlog[n]):
                         print ('!!!bitrate:',QoSlog[n],'is WRONG!!!')
-                    elif (n=='dropFrameCount' and not (re.search('^\\d+$',QoSlog[n]))):
+                    elif n=='dropFrameCount' and not (re.search('^\\d+$',QoSlog[n])):
                         print ('!!!dropFrameCount:',QoSlog[n],'is WRONG')
-                    elif (n=='streamLength' and not (re.search('^[0-9]*[1-9][0-9]*$',QoSlog[n]))):
-                        print ('!!!streamLength:',QoSlog[n],'is WRONG')
-                    elif (n=='windowMode'and (QoSlog[n] not in ['fullscreen','normal'])):
+                    elif n=='windowMode'and (QoSlog[n] not in ['fullscreen','normal']):
                         print ('!!!windowMode:',QoSlog[n],'is WRONG which should be fullscreen or normal')
-                    elif (n=='mode' and (QoSlog[n] not in ['0'])):
+                    elif n=='mode' and (QoSlog[n] not in ['0']):
                         print ('!!!mode:',QoSlog[n],'is WRONG which should be 0')
-                print('*****************************************************************')
+                        
         for m in range (0,len(bytesloaded)-1):
             if (not (int (bytesloadedDelta[m+1])==int (bytesloaded[m+1])-int (bytesloaded[m]))):
                 print('bytesLoaded or byteLoadedDelta of the',m+1,'HB is WRONG')
                 m=m+1
+    def Test_Consistency():
+        global userid
+        userid=[]
+        apptype=[]
+        clientID=[]
+        sessionID=[]
+        userType=[]
+        deviceType=[]
+        networkType=[]
+        viewID=[]
+        siteID=[]
+        with open('userid.xml', 'w') as f:
+            f.write(''.join([line for line in open(logfile).readlines() if "userID" in line]))
+        f.close()
+        file = open('userid.xml',"r")
+        lines = file.readlines()
+        for line in lines:
+            if "<![CDATA" in line:
+                qos=line[line.find("<![CDATA[")+9:line.find("]")]
+                message=qos.split("&")
+                newlog=[]
+            for i in message:
+                log=i.split("=")
+                newlog.append(log)
+                if newlog[-1]==['']:
+                    del newlog[-1]
+            QoSlogConsistency=dict(newlog)
+
+            for n in QoSlogConsistency.keys():
+                if n=='userID':
+                    userid.append(QoSlog[n])
+            for n in QoSlogConsistency.keys():
+                if n=='appType':
+                    apptype.append(QoSlog[n])
+            for n in QoSlogConsistency.keys():
+                if n=='clientID':
+                    clientID.append(QoSlog[n])
+            for n in QoSlogConsistency.keys():
+                if n=='sessionID':
+                    sessionID.append(QoSlog[n])
+            for n in QoSlogConsistency.keys():
+                if n=='userType':
+                    userType.append(QoSlog[n])
+            for n in QoSlogConsistency.keys():
+                if n=='deviceType':
+                    deviceType.append(QoSlog[n])
+            for n in QoSlogConsistency.keys():
+                if n=='networkType':
+                    networkType.append(QoSlog[n])
+            for n in QoSlogConsistency.keys():
+                if n=='viewID':
+                    viewID.append(QoSlog[n])
+            for n in QoSlogConsistency.keys():
+                if n=='siteID':
+                    siteID.append(QoSlog[n])
+        for n in userid:
+            print (n)
+        print ('Total:'+str(len(userid)))
+        print ('Check userID')
+        
+    def useriddecode():
+        playload =  {
+                      'j_username' :'nladmin',
+                      'j_password' : 'nladmin',
+                      }
+        userID = userid[0]
+        decodeurl = 'http://172.16.0.237:9220/monitor-2.5.0/util/sql?sql=SELECT+decodeUserID%28"'+userID+'"%29&submit=Execute'
+        try:
+            with requests.Session() as c:
+                headers = {}
+                headers['User_agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.71 Safari/537.36r)'
+                c.post ('http://172.16.0.237:9220/monitor-2.5.0/login?site=nfl', headers = headers, data = playload,verify=False)
+                r = c.get(decodeurl,verify=False)
+                data= str (r.text)
+                soup = BeautifulSoup(data,'html.parser')
+                for item in soup.find_all('td'):
+                      print (item.string)
+                print ('Decode done')
+        except Exception as e:
+          print (str (e))
+
+class NLTestQoS:
+    
+    def Test_Video(self):
+        global testParameters
+        Tools.Test_Tools(testVideo)
+        videoParameters = ['ppId']
+        testParameters = commonParameters + videoParameters
+        Tools.Test_commonParameters()
+        for n in QoSlog.keys():
+            if n == 'ppType' and (QoSlog[n] not in ['video']):
+                print ('!!!ppType:',QoSlog[n],'is WRONG which should be video')
+        Tools.Test_Consistency()
+        Tools.useriddecode()
+        
+    def Test_LiveVideo(self):
+        global testParameters
+        Tools.Test_Tools(testVideo)
+        videoParameters = ['ppId']
+        testParameters = commonParameters + videoParameters
+        Tools.Test_commonParameters()
+        for n in QoSlog.keys():
+            if n == 'ppType' and (QoSlog[n] not in ['video']):
+                print ('!!!ppType:',QoSlog[n],'is WRONG which should be video')
+            if n == 'streamLength' and (QoSlog[n] not in ['-1']):
+                print ('!!!streamLength:',QoSlog[n],'is WRONG which should be -1')
+        Tools.Test_Consistency()
                 
-        print('Test done!!!')
-
-
     def Test_Channel(self):
-        videohb=['messageType','convention','siteID','productID','clientID','appVersion','userID','sessionID',
-                         'deviceType','appType','os','networkType','viewID','msgID','bufferTime',
-                           'ppType','ppId','streamDescription','streamURL','streamLength',
-                        'player','windowMode','playTime','bitrate','carrierName','mode','playerVersion',
-                           'switchMethod','cdnName','bytesLoaded','bytesLoadedDelta','dropFrameCount','startupTime','updateInterval']
-        with open('channel.xml', 'w') as f:
-            f.write(''.join([line for line in open('testchannel.xml').readlines() if "messageType=VIDEO_HB" in line]))
-        f.close()
-        file = open("channel.xml","r")
-        lines = file.readlines()
-        m = 0
-        bytesloaded=[]
-        bytesloadedDelta=[]
-        for line in lines:
-            if "<![CDATA" in line:
-                qos=line[line.find("<![CDATA[")+9:line.find("]")]
-                message=qos.split("&")
-                newlog=[]
-                for i in message:
-                    log=i.split("=")
-                    newlog.append(log)
-                QoSlog=dict(newlog)
-                for i in videohb:
-                    if i not in QoSlog.keys():
-                        print ('!!!',i, 'is missing!!!')
-#                    else:
-#                        print (i,':',QoSlog[i])
-                for j in QoSlog.keys():
-                    if j not in videohb:
-                        print ('!!!', j, 'should not be passed in VIDEO_HB(Channel)')
-                for n in QoSlog.keys():
-                    if (n=='bytesLoaded'):
-                        bytesloaded.append(QoSlog[n])
-                    if (n=='bytesLoadedDelta'):
-                        bytesloadedDelta.append(QoSlog[n])
-                    if (n=='networkType' and (QoSlog[n] not in ['wifi','carrier','landline'])):
-                        print ('!!!networkType:',QoSlog[n],'is WRONG')
-                    elif (n=='updateInterval' and (QoSlog[n] not in ['60','30'])):
-                        print ('!!!updateInterval:',QoSlog[n],'is WRONG')
-                    elif (n=='convention' and (QoSlog[n] not in ['1.0'])):
-                        print ('!!!convention:',QoSlog[n],'is WRONG')
-                    elif ((n=='userID' and ('-'not in QoSlog[n] ))):
-                        print ('!!!userID:',QoSlog[n],'is WRONG')
-                    elif (n== 'ppType' and (QoSlog[n] not in ['channel'])):
-                        print ('!!!ppType:',QoSlog[n],'is WRONG which should be channel')
-                    elif (n== 'ppGt' and (QoSlog[n] not in ['1','2','4','8','16','32','64','128','256','512','1024'])):
-                        print ('!!!ppGt:',QoSlog[n],'is WRONG')
-                    elif (n=='ppGs'and(QoSlog[n] not in ['1'] )):
-                        print ('!!!ppGs:',QoSlog[n],'is WRONG')
-                    elif (n=='streamLength' and (QoSlog[n] not in ['-1'])):
-                        pring ('!!!ppGs:',QoSlog[n],'is WRONG which should be -1')
-                    elif (n=='msgID' and not (re.search('^\\d+$',QoSlog[n]))):
-                        print ('!!!msgID:',QoSlog[n],'is WRONG which should be natural number!')
-                    elif (n=='switchMethod' and (QoSlog[n] not in ['1','0'])):
-                        print ('!!!switchMethod:',QoSlog[n],'is WRONG which should be 1(maunal) or 0(auto adaptive)')
-                    elif (n=='bitrate' and not ('^[1-9][0-9]*0{1}$',QoSlog[n])):
-                        print ('!!!bitrate:',QoSlog[n],'is WRONG!!!')
-                    elif (n=='dropFrameCount' and not (re.search('^\\d+$',QoSlog[n]))):
-                        print ('!!!dropFrameCount:',QoSlog[n],'is WRONG')
-                    elif (n=='mode' and (QoSlog[n] not in ['0'])):
-                        print ('!!!mode:',QoSlog[n],'is WRONG which should be 0')
-                print('*****************************************************************')
-        for m in range (0,len(bytesloaded)-1):
-            if (not (int (bytesloadedDelta[m+1])==int (bytesloaded[m+1])-int (bytesloaded[m]))):
-                print('bytesLoaded or byteLoadedDelta of the',m+1,'HB is WRONG')
-                m=m+1
+        global testParameters
+        Tools.Test_Tools(testVideo)
+        videoParameters = ['epgShowTime','epgShowName','ppId']
+        testParameters = commonParameters + videoParameters
+        Tools.Test_commonParameters()
+        for n in QoSlog.keys():
+            if n == 'ppType' and (QoSlog[n] not in ['channel']):
+                print ('!!!ppType:',QoSlog[n],'is WRONG which should be channel')
+            if n == 'streamLength' and (QoSlog[n] not in ['-1']):
+                print ('!!!streamLength:',QoSlog[n],'is WRONG which should be -1')
+        Tools.Test_Consistency()
+        Tools.useriddecode()
                 
-        print('Test done!!!')
-
-
     def Test_Game(self):
-        videohb=['messageType','convention','siteID','productID','clientID','appVersion','userID','sessionID',
-                         'deviceType','appType','os','networkType','viewID','msgID','carrierName','mode',
-                           'ppType','ppGt','streamDescription','streamURL','streamLength','gameDate',
-                         'homeTeam','awayTeam','player','windowMode','playTime','bitrate','bufferTime','playerVersion',
-                           'switchMethod','cdnName','bytesLoaded','bytesLoadedDelta','dropFrameCount','startupTime','updateInterval']
-        with open('game.xml', 'w') as f:
-            f.write(''.join([line for line in open('testgame.xml').readlines() if "messageType=VIDEO_HB" in line]))
-        f.close()
-        file = open("game.xml","r")
-        lines = file.readlines()
-        m = 0
-        bytesloaded=[]
-        bytesloadedDelta=[]
-        for line in lines:
-            if "<![CDATA" in line:
-                qos=line[line.find("<![CDATA[")+9:line.find("]")]
-                message=qos.split("&")
-                newlog=[]
-                for i in message:
-                    log=i.split("=")
-                    newlog.append(log)
-                QoSlog=dict(newlog)
-                if (('ppId' not in QoSlog) and ( 'ppExtid' not in QoSlog)):
-                    print ('!!!!!!ppId or ppExtId is  missing!!!!!!')
-                if (('ppGs' not in QoSlog) and (QoSlog['ppGt'] in ['1','2','4','256','512','1024'])):
-                    print ('!!!ppGs is missing')
-                for i in videohb:
-                    if i not in QoSlog.keys():
-                        print ('!!!',i, 'is missing !!!')
-#                    else:
-#                        print (i,':',QoSlog[i])
-                for j in QoSlog.keys():
-                    if ((j not in videohb) and not (j=='ppId' or j=='ppExtid' or j=='ppGs')):
-                        print ('!!!', j, 'should not be passed in VIDEO_HB(Game)')
-                for n in QoSlog.keys():
-                    if (n=='bytesLoaded'):
-                        bytesloaded.append(QoSlog[n])
-                    if (n=='bytesLoadedDelta'):
-                        bytesloadedDelta.append(QoSlog[n])
-                    if (n=='networkType' and (QoSlog[n] not in ['wifi','carrier','landline'])):
-                        print ('!!!networkType:',QoSlog[n],'is WRONG')
-                    elif (n=='updateInterval' and (QoSlog[n] not in ['60','30'])):
-                        print ('!!!updateInterval:',QoSlog[n],'is WRONG')
-                    elif (n=='convention' and (QoSlog[n] not in ['1.0'])):
-                        print ('!!!convention:',QoSlog[n],'is WRONG')
-                    elif ((n=='userID' and ('-'not in QoSlog[n] ))):
-                        print ('!!!userID:',QoSlog[n],'is WRONG')
-                    elif (n== 'ppType' and (QoSlog[n] not in ['game'])):
-                        print ('!!!ppType:',QoSlog[n],'is WRONG')
-                    elif (n== 'ppGt' and (QoSlog[n] not in ['1','2','4','8','16','32','64','128','256','512','1024'])):
-                        print ('!!!ppGt:',QoSlog[n],'is WRONG')
-                    elif (n=='ppGs'and(QoSlog[n] not in ['1','2','3'] )):
-                        print ('!!!ppGs:',QoSlog[n],'is WRONG')
-                    elif (n=='msgID' and not (re.search('^\\d+$',QoSlog[n]))):
-                        print ('!!!msgID:',QoSlog[n],'is WRONG which should be natural number!')
-                    elif (n=='switchMethod' and (QoSlog[n] not in ['1','0'])):
-                        print ('!!!switchMethod:',QoSlog[n],'is WRONG which should be 1(maunal) or 0(auto adaptive)')
-                    elif (n=='gameDate' and not (re.search('\d{4}-\d{2}-\d{2}',QoSlog[n]))):
-                        print ('!!!gameDate:',QoSlog[n],'is WRONG which should be yyyy-mm-dd')
-                    elif (n=='bitrate' and not ('^[1-9][0-9]*0{1}$',QoSlog[n])):
-                        print ('!!!bitrate:',QoSlog[n],'is WRONG!!!')
-                    elif (n=='streamDescription' and not(re.search('QoSlog[awayTeam]\sat\sQoSlog[homeTeam]on\d{4} -\d{2}-\d{2}-\d{1}',QoSlog[n]))):
-                        print ('!!!streamDescription:',QoSlog[n],'is WRONG which should be like awayTeamCode at homeTeamCode on gameDate(yyyyMMdd) [– gameType] [- camera(camX)]')
-                    elif (n=='dropFrameCount' and not (re.search('^\\d+$',QoSlog[n]))):
-                        print ('!!!dropFrameCount:',QoSlog[n],'is WRONG')
-                    elif (n=='streamLength' and not (re.search('^[0-9]*[1-9][0-9]*$',QoSlog[n]))):
-                        print ('!!!streamLength:',QoSlog[n],'is WRONG')
-                    elif (n=='ppExtid' and 'ppId' in QoSlog):
-                        print('ppId and ppExtid can not co-exist!!!!')
-                    elif (n=='ppId' and 'ppExtid' in QoSlog):
-                        print('ppId and ppExtid can not co-exist!!!!')
-                    elif (n=='mode' and (QoSlog[n] not in ['0'])):
-                        print ('!!!mode:',QoSlog[n],'is WRONG which should be 0')
-                print('*****************************************************************')
-        for m in range (0,len(bytesloaded)-1):
-            if (not (int (bytesloadedDelta[m+1])==int (bytesloaded[m+1])-int (bytesloaded[m]))):
-                print('bytesLoaded or byteLoadedDelta of the',m+1,'HB is WRONG')
-                m=m+1
+        global testParameters
+        Tools.Test_Tools(testVideo)
+        videoParameters = ['homeTeam','awayTeam','ppGt','ppGs','gameDate','ppId']
+        testParameters = commonParameters + videoParameters
+        Tools.Test_commonParameters()
+        for n in QoSlog.keys():
+            if n == 'ppType' and (QoSlog[n] not in ['game']):
+                print ('!!!ppType:',QoSlog[n],'is WRONG which should be game')
+            if n=='streamDescription' and not (re.search(QoSlog['awayTeam']+'\sat\s'+QoSlog['homeTeam']+'\son\s\d{8}-1',QoSlog['streamDescription'].replace('%20',' '))):
+                print ('!!!streamDescription:',QoSlog[n].replace('%20',' '),'is WRONG which should be like awayTeamCode at homeTeamCode on gameDate(yyyyMMdd) [– gameType] [- camera(camX)]')
+                # Someting wrong with re, not sure why， need check later
+            if n== 'ppGt' and (QoSlog[n] not in ['1','2','4','8','16','32','64','128','256','512','1024']):
+                print ('!!!ppGt:',QoSlog[n],'is WRONG')
+            if n=='ppGs'and(QoSlog[n] not in ['3'] ):
+                print ('!!!ppGs:',QoSlog[n],'is WRONG')
+            if n=='gameDate' and not (re.search('\d{4}-\d{2}-\d{2}',QoSlog[n])):
+                print ('!!!gameDate:',QoSlog[n],'is WRONG which should be yyyy-mm-dd')
+            if n=='ppExtid' and 'ppId' in QoSlog:
+                print('ppId and ppExtid can not co-exist!!!!')
+            if n=='ppId' and 'ppExtid' in QoSlog:
+                print('ppId and ppExtid can not co-exist!!!!')
+        Tools.Test_Consistency()
+        Tools.useriddecode()
+                
+    def Test_LiveGame(self):
+        global testParameters
+        Tools.Test_Tools(testVideo)
+        for n in QoSlog.keys():
+            if n == 'ppType' and (QoSlog[n] not in ['game']):
+                print ('!!!ppType:',QoSlog[n],'is WRONG which should be game')
+            if n == 'streamLength' and (QoSlog[n] not in ['-1']):
+                print ('!!!streamLength:',QoSlog[n],'is WRONG which should be -1')
+            if n=='streamDescription' and not (re.search(QoSlog['awayTeam']+'\sat\s'+QoSlog['homeTeam']+'\son\s\d{8}-1',QoSlog['streamDescription'].replace('%20',' '))):
+                print ('!!!streamDescription:',QoSlog[n].replace('%20',' '),'is WRONG which should be like awayTeamCode at homeTeamCode on gameDate(yyyyMMdd) [– gameType] [- camera(camX)]')
+                # Someting wrong with re, not sure why， need check later
+            if n== 'ppGt' and (QoSlog[n] not in ['1','2','4','8','16','32','64','128','256','512','1024']):
+                print ('!!!ppGt:',QoSlog[n],'is WRONG')
+            if n=='ppGs'and(QoSlog[n] not in ['1'] ):
+                print ('!!!ppGs:',QoSlog[n],'is WRONG')
+            if n=='gameDate' and not (re.search('\d{4}-\d{2}-\d{2}',QoSlog[n])):
+                print ('!!!gameDate:',QoSlog[n],'is WRONG which should be yyyy-mm-dd')
+            if n=='ppExtid' and 'ppId' in QoSlog:
+                print('ppId and ppExtid can not co-exist!!!!')
+            if n=='ppId' and 'ppExtid' in QoSlog:
+                print('ppId and ppExtid can not co-exist!!!!')
+        Tools.Test_Consistency()
+    
 
-        print('Test done!!!')
-
+                  
 while True:
-    videoType=['video','game','channel']
-    testVideo=input('Please input the video type U want to test (video,channel,game):')
+    videoType=['live video','video','live game','game','channel']
+    testVideo=input('Please input the video type U want to test (video, live video, channel, game, live game):')
     if (testVideo not in videoType):
         print('Please input right video tpye!')
+    elif (testVideo=='live video'):
+        b=NLTestQoS()
+        b.Test_LiveVideo()
+        break
     elif (testVideo=='video'):
         b=NLTestQoS()
         b.Test_Video()
@@ -244,4 +284,7 @@ while True:
         b=NLTestQoS()
         b.Test_Game()
         break
-
+    elif (testVideo=='live game'):
+        b=NLTestQoS()
+        b.Test_LiveGame()
+        break

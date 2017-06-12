@@ -1,18 +1,60 @@
 import re
-def localization (input,output):
-      i=0
-      with open(input,  'r+', encoding='utf-8') as f:
-            lines = f.readlines()
-            for line in lines:
-                  if '#' in line:
-                        newfile = open(output,'a')
-                        newfile.writelines(str (line))
-                        newfile.close()
-                  elif '=' in line:
-                        newline=re.sub('(?<==).+?(?=$)', str(i), line)
-                        i+=1
-                        newfile = open(output,'a')
-                        newfile.writelines(str (newline))
-                        newfile.close()
+import os
 
-localization('../A.txt','../B.txt')
+
+# Change all value to natural number.
+def localization(inputfile, output):
+	i = 0
+	with open(inputfile,  'r+', encoding='utf-8') as f:
+		lines = f.readlines()
+		for line in lines:
+			if '#' in line:
+				newfile = open(output, 'a')
+				newfile.writelines(str(line))
+				newfile.close()
+			elif '=' in line:
+				newline = re.sub('(?<==).+?(?=$)', str(i), line)
+				print()
+				i += 1
+				newfile = open(output, 'a')
+				newfile.writelines(str(newline))
+				newfile.close()
+
+
+# Lowercase all keys if any.
+def replace(file, outfile):
+	with open(file, 'r+', encoding='utf-8') as f:
+		lines = f.readlines()
+		for line in lines:
+			if '=' in line:
+				a = line.split('=', 1)
+				key = a[0]
+				key = key.lower()
+				newline = key + '=' + a[1]
+				newfile = open(outfile, 'a')
+				newfile.writelines(str(newline))
+				newfile.close()
+			else:
+				newfile = open(outfile, 'a')
+				newfile.writelines(str(line))
+				newfile.close()
+
+
+# Search '%s'
+def search(filedir):
+	for root, dirs, files in os.walk(filedir):
+		for file in files:
+			path = os.path.join(root, file)
+			name = os.path.basename(path)
+			if str(name) == 'localization_en.string':
+				file = open(path, 'rb')
+				lines = file.readlines()
+				for line in lines:
+					if b'%s' in line:
+						print(path)
+						print(line)
+
+if __name__ == '__main__':
+	localization(r'D:\Py\localization\localization_en.string', r'D:\Py\localization\localization_en_testVersion.string')
+	search(r'D:\Py\localization\\')
+	replace(r'D:\Py\localization\localization_en.string', r'D:\Py\localization\localization_en_update.string')

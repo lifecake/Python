@@ -1,0 +1,86 @@
+from bs4 import BeautifulSoup
+import re
+import requests
+import time
+
+rooturl = "http://www.mpzw.com/html/115/115393/"
+chapternames = []
+chaptersurls = []
+
+proxies = {
+	'http': 'http://121.232.144.64:9000',
+	'https': 'http://121.232.144.64:9000',
+	}
+
+
+class findchapterurls:
+
+		def geturl(self,rooturl):
+			page = requests.get(rooturl, proxies=proxies)
+			page.encoding = 'gbk'
+			html = page.text
+			soup = BeautifulSoup(html,'html.parser')
+			for item in soup.find_all('a'):
+				if re.search( '^\d*.html', item['href']):
+					chapternames.append(item.string)
+					chaptersurls.append(item.attrs['href'])
+			global filename
+			xstitle = soup.h1.text
+			filename = str(xstitle).replace(':','')
+			print(filename)
+			return True
+
+
+class tools:
+
+	def __init__(self):
+		self.removebr = re.compile('<br/>')
+		self.removecomment = re.compile('<\S?--go-->')
+		self.removediv = re.compile('<div.*?>|</div>')
+		self.removea = re.compile('<a.*?>|</a>')
+		self.removeover = re.compile ('<!--over.*?</div>')
+		
+	def replace(self, x):
+
+		x = self.removebr.sub( ' ', x)
+		x = self.removecomment.sub(' ', x)
+		x = self.removediv.sub(' ', x)
+		x = self.removea.sub(' ', x)
+		x = self.removeover.sub(' ', x)
+		x = re.sub(r"\s{2,}", " ", x)
+		return x
+
+
+class xscontent:
+
+	def getcontent():
+		i = 0
+		for link in chaptersurls:
+			url = 'http://www.mpzw.com/html/115/115393/'+link
+			page = requests.get(url)
+			page.encoding = 'gbk'
+			html = page.text
+			soup = BeautifulSoup(html,'html.parser')
+			for item in soup.find_all('div'):
+				if 'id' in item.attrs and re.search('^clickeye_content', item['id']):
+					xscontenthtml = str(item)
+			w = tools().replace(xscontenthtml)
+			savefile = open(r'D:\Py\Emily\\' + filename + '.txt', 'a', encoding='utf-8')
+			savefile.write(chapternames[i])
+			print('Saving', i+1, 'chapter')
+			savefile.write('\n')
+			savefile.write(w.replace(' ', ''))
+			savefile.write('\n')
+			savefile.close()
+			i = i+1
+
+
+if __name__ == '__main__':
+
+	t0 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+	print('Start downloading from:' + rooturl + '  at ' + str(t0))
+	findchapterurls().geturl('http://www.mpzw.com/html/115/115393/')
+	xscontent.getcontent()
+	t1 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+	print('Finish ' + ' at  ' + str(t1))
+	print('Done')

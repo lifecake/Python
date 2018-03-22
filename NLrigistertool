@@ -1,0 +1,84 @@
+import requests
+import time
+import json
+
+
+headers = {}
+headers['User_agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.71 Safari/537.36r)'
+project = 'xxxx'
+sku = 'xxxx'
+
+
+def register():
+    rigisterurl = project + '/secure/register?'
+    n = 0
+    while n < 10:
+        username = 'aa' + str(n) + '@sh.com'
+        playload = {'username': username, 'email': username, 'password': '111111', 'dobdate': '1', 'dobmonth': '1',
+                    'dobyear': '1908', 'firstname': 'First', 'lastname': 'Last', 'format': 'json',
+                    'callback': 'jQuery110206627013677632414_1521602318400', '_': int(time.time()*1000)}
+        with requests.Session() as c:
+            r = c.post(rigisterurl, headers=headers, data=playload, verify=False)
+            data = str(r.text)
+            data_format = data.replace('jQuery110206627013677632414_1521602318400', '').replace('(', '').replace(')', '')
+            response = json.loads(data_format)
+            if str(response['code']) == 'registered':
+                print(username + ' Registered Successfully')
+            else:
+                print('Register Failed, ' + 'code: ' + response['code'])
+        n = n + 1
+
+
+def purchase():
+    n = 0
+    while n < 10:
+        username = 'aa' + str(n) + '@sh.com'
+        loginurl = project + '/secure/authenticate?'
+        purchaseurl = project + '/secure/register?'
+        logouturl = project + '/service/logout?'
+        playloadlogin = {'username': username, 'password': '111111', 'format': 'json',
+                     'callback': 'jQuery110206627013677632414_1521602318400', '_': int(time.time()*1000)}
+        playloadpurchase = {'billing_address1': 'address1', 'billing_city': 'city', 'billing_country': 'DZ',
+                            'billing_zip': '1', 'cardnumber': 'xxxxxx', 'cardsc': '111',
+                            'cardholder': 'First Last', 'cardexpmonth': '1', 'cardexpyear': '2020', 'sku': sku,
+                            'format': 'json', 'callback': 'jQuery110206627013677632414_1521602318400',
+                            '_': int(time.time() * 1000)}
+
+        playloadlogout = {'format': 'json', 'callback': 'jQuery110206627013677632414_1521602318400',
+                          '_': int(time.time() * 1000)}
+        with requests.Session() as c:
+            r1 = c.post(loginurl,  headers=headers, data=playloadlogin, verify=False)
+            data = str(r1.text)
+            data_format = data.replace('jQuery110206627013677632414_1521602318400', '')\
+                .replace('(', '').replace(')', '')
+            response = json.loads(data_format)
+            if str(response['code']) == 'loginsuccess':
+                print(username + ' Login Successfully')
+            else:
+                print('Login Failed, ' + 'code: ' + response['code'])
+
+            r2 = c.post(purchaseurl, headers=headers, data=playloadpurchase, verify=False)
+            data = str(r2.text)
+            data_format = data.replace('jQuery110206627013677632414_1521602318400', '') \
+                .replace('(', '').replace(')', '')
+            response = json.loads(data_format)
+            if str(response['code']) == 'subscribedsuccess':
+                print(username + ' ' + sku + ' subscribedsuccess Successfully')
+            else:
+                print('Subscribe Failed, ' + 'code: ' + response['code'])
+
+            r3 = c.post(logouturl, headers=headers, data=playloadlogout, verify=False)
+            data = str(r3.text)
+            data_format = data.replace('jQuery110206627013677632414_1521602318400', '')\
+                .replace('(', '').replace(')', '')
+            response = json.loads(data_format)
+            if str(response['code']) == 'logout':
+                print(username + ' logout Successfully')
+            else:
+                print('logout Failed, ' + 'code: ' + response['code'])
+        n = n + 1
+
+
+if __name__ == '__main__':
+    register()
+    purchase()

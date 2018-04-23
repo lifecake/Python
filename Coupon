@@ -1,0 +1,26 @@
+import random
+import string
+
+
+def getRandomStr(n):
+    ran_str = ''.join(random.sample(string.ascii_letters.upper() + string.digits, n))
+    return ran_str
+
+
+def getCoupon(m, n):
+    l1 = []
+    while m > 0:
+        l1.append(getRandomStr(n))
+        m = m - 1
+    ran_coupons = '-'.join(l1)
+    print(ran_coupons)
+
+
+def getCoupons(i, m, n):
+    while i > 0:
+        getCoupon(m, n)
+        i = i - 1
+
+
+if __name__ == '__main__':
+    getCoupons(10, 5, 6)

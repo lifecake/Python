@@ -1,0 +1,24 @@
+import random
+
+
+def getSSQ():
+    BlueBall = random.randint(1, 16)
+    RedBall= []
+    while len(RedBall) < 5:
+        ball = random.randint(1, 33)
+        # remove duplicate number
+        if ball in RedBall:
+            RedBall.remove(ball)
+        else:
+            RedBall.append(ball)
+    RedBall.sort()
+
+    return '红球：' + str(' '.join('%s' %id for id in RedBall)) + '\n' + '蓝球：' + str(BlueBall)
+
+
+if __name__ == '__main__':
+    n = input('How many you want get? : ')
+    m = 0
+    while m < int(n):
+        print(getSSQ())
+        m = m +1
